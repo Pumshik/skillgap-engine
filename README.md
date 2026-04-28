@@ -211,7 +211,7 @@ pytest tests/ -v --cov=src --cov-report=html
 
 ---
 
-## 🐳 Docker
+## Docker
 
 ### Сборка образа вручную:
 ```bash
