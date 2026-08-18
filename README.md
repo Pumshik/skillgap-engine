@@ -8,13 +8,14 @@
 ### Ключевые особенности:
 - **Датасет**: модели обучались на датасете https://huggingface.co/datasets/batuhanmtl/job_resume_fit/blob/main/job_resume_fit.csv, содержащем описания вакансий, резюме, требуемые навыки и имеющиеся навыки, а также оценки их сходство, на основе которого я и определял целевую переменную.
 - **Ансамблевое предсказание**: Комбинация кастомной логистической регрессии и PyTorch MLP для максимальной стабильности и устойчивости к аномалиям.
-- **Бизнес-ориентированные признаки**: TF-IDF для текстов + 4 строгих числовых метрики пересечения навыков.
+- **Признаки**: TF-IDF для текстов + 4 строгих числовых метрики пересечения навыков.
 - **Калиброванные вероятности**: Использование Platt Scaling для приведения сырых логитов нейросети к интерпретируемым вероятностям.
 - **Инженерная культура**: Единый `requirements.txt`, конфигурация через YAML, логирование, Docker-контейнеризация и защита от аномальных входных данных.
 
 ---
 
 ## Архитектура
+```
 
 ┌─────────────────┐     ┌──────────────────────────┐     ┌─────────────────┐
 │   Data Loader   │────▶│  Feature Engineering     │────▶│   Model Train   │
@@ -31,8 +32,10 @@
 │   Docker Image  │
 │  (uvicorn/FastAPI)
 └─────────────────┘
+```
 
 ### Структура проекта:
+```
 
 skillgap-engine/
  ├── configs/
@@ -57,49 +60,65 @@ skillgap-engine/
  ├── .gitignore                # Исключения для Git
  └── README.md                 # Этот файл
 
----
+```
 
 ## Быстрый старт
 
-### Локальный запуск (Разработка)
+### Локальный запуск
 
-# 1. Клонировать репозиторий
-git clone <https://github.com/Pumshik/skillgap-engine>
+#### 1. Клонировать репозиторий
+```
+git clone https://github.com/Pumshik/skillgap-engine
 cd skillgap-engine
+```
 
-# 2. Создать и активировать виртуальное окружение
+#### 2. Создать и активировать виртуальное окружение
+```
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# или venv\Scripts\activate (Windows)
+```
+или ``` venv\Scripts\activate (Windows) ```
 
-# 3. Установить зависимости
+#### 3. Установить зависимости
+```
 pip install -r requirements.txt
+```
 
-# 4. Обучить обе модели (создаст артефакты в папке artifacts/)
+#### 4. Обучить обе модели (создаст артефакты в папке artifacts/)
+```
 python src/train.py
 python src/train_torch.py
+```
 
-# 5. Запустить API сервер
+#### 5. Запустить API сервер
+```
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
 
-# 6. Проверить здоровье сервиса
+#### 6. Проверить здоровье сервиса
+```
 curl http://localhost:8000/health
+```
 
 ### Запуск через Docker
 
 > **Важно:** Убедитесь, что папка `artifacts/` уже содержит обученные модели перед запуском контейнера, так как они монтируются как volume.
 
-# 1. Собрать и запустить контейнер
+#### 1. Собрать и запустить контейнер
+```
 docker-compose up --build -d
+```
 
-# 2. Проверить статус и логи
+#### 2. Проверить статус и логи
+```
 docker-compose ps
 docker-compose logs -f skillgap-api
+```
 
-# 3. Остановить сервис
+#### 3. Остановить сервис
+```
 docker-compose down
-
----
+```
 
 ## Модели и данные
 
@@ -119,7 +138,6 @@ docker-compose down
 | PyTorch MLP (Calibrated)         | ~0.86 - 0.88 | ~0.87 - 0.89 | Ловит нелинейные паттерны, вероятность откалибрована               |
 | **Ensemble (Default)**           | **~0.87 - 0.89** | **~0.88 - 0.90** | Усреднение вероятностей. Сглаживает излишнюю уверенность моделей   |
 
----
 
 ## API Endpoints
 
@@ -134,7 +152,7 @@ docker-compose down
 Оценка соответствия резюме и вакансии.
 
 **Пример запроса 1:**
-
+```
 curl -X POST "http://localhost:8000/predict" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
@@ -145,18 +163,20 @@ curl -X POST "http://localhost:8000/predict" \
     "job_required_skills": "java, spring boot, hibernate, aws, docker, microservices",
     "model_choice": "ensemble"
   }'
+```
 
 **Ожидаемый ответ:**
-
+```
 {
   "prediction": 1,
   "probability": 0.8605,
   "model_used": "Ensemble (Linear + MLP)",
   "status": "success"
 }
+```
 
 **Пример запроса 2:**
-
+```
 curl -X POST "http://localhost:8000/predict" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
@@ -167,21 +187,20 @@ curl -X POST "http://localhost:8000/predict" \
     "job_required_skills": "javascript, react, node.js, html, css",
     "model_choice": "ensemble"
   }'
-
+```
 **Ожидаемый ответ:**
-
+```
 {
   "prediction": 0,
   "probability": 0.1365,
   "model_used": "Ensemble (Linear + MLP)",
   "status": "success"
 }
+```
 
 > **Параметр `model_choice`**: Принимает значения `"ensemble"` по умолчанию, `"linear"` или `"mlp"`.
 
 **Swagger UI:** Полная документация доступна по адресу: http://localhost:8000/docs
-
----
 
 ## Визуализация и мониторинг
 
@@ -189,7 +208,7 @@ curl -X POST "http://localhost:8000/predict" \
 Для отслеживания процесса обучения нейросети:
 
 tensorboard --logdir=runs --host 0.0.0.0 --port 6006
-# Открыть в браузере: http://localhost:6006
+#### Открыть в браузере: http://localhost:6006
 
 **Отслеживаемые метрики:** `Loss/train`, `Loss/val`, `Metrics/val_accuracy`, `Metrics/val_f1`.
 
@@ -197,21 +216,21 @@ tensorboard --logdir=runs --host 0.0.0.0 --port 6006
 - Консольный вывод.
 - Файлы `logs/train.log` и `logs/torch_train.log` для детального анализа и отладки.
 
----
 
 ## Docker
 
 ### Сборка образа вручную:
-
+```
 docker build -t skillgap-engine:latest .
+```
 
 ### Запуск контейнера с монтированием томов:
-
+```
 docker run -p 8000:8000 \
   -v $(pwd)/artifacts:/app/artifacts \
   -v $(pwd)/configs:/app/configs \
   skillgap-engine:latest
----
+```
 
 ## Воспроизводимость
 
