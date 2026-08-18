@@ -3,21 +3,17 @@ import torch.nn as nn
 
 class MLPClassifier(nn.Module):
     """
-    Linear -> BatchNorm -> ReLU -> Dropout -> Linear
+    Один скрытый слой с BatchNorm, Dropout и L2-регуляризацией (weight_decay в оптимизаторе).
     """
-    def __init__(self, input_dim: int, hidden_dim: int = 64, num_layers: int = 2, dropout: float = 0.2):
+    def __init__(self, input_dim: int, hidden_dim: int = 32, dropout: float = 0.4):
         super().__init__()
-        layers = []
-        dims = [input_dim] + [hidden_dim] * num_layers + [1]
-        
-        for i in range(len(dims) - 1):
-            layers.append(nn.Linear(dims[i], dims[i+1]))
-            if i < num_layers:
-                layers.append(nn.BatchNorm1d(dims[i+1]))
-                layers.append(nn.ReLU())
-                layers.append(nn.Dropout(dropout))
-                
-        self.network = nn.Sequential(*layers)
+        self.network = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, 1)
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.network(x).squeeze(-1)

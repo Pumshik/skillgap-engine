@@ -3,7 +3,8 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 
 class MyLogisticRegression(BaseEstimator, ClassifierMixin):
     """Логистическая регрессия с SGD"""
-    def __init__(self, lr=0.01, max_iter=1000, tol=1e-4, batch_size=64, method="sgd", seed=42):
+    def __init__(self, lr=0.01, max_iter=1000, tol=1e-4, batch_size=64, method="sgd", seed=42, l2_lambda=0.0):
+        self.l2_lambda = float(l2_lambda)
         self.lr = float(lr)
         self.max_iter = int(max_iter)
         self.tol = float(tol)
@@ -41,7 +42,9 @@ class MyLogisticRegression(BaseEstimator, ClassifierMixin):
                 y_pred = self._sigmoid(z)
                 err = y_pred - y_batch
 
-                self.coef_ -= self.lr * (X_batch.T @ err) / len(idx)
+                reg = self.l2_lambda * self.coef_
+                self.coef_ -= self.lr * ((X_batch.T @ err) / len(idx) + reg)
+
                 self.intercept_ -= self.lr * np.mean(err)
                 start = end
 

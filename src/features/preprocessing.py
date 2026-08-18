@@ -41,3 +41,21 @@ def build_preprocessor(config: dict) -> ColumnTransformer:
     )
     logger.info("Preprocessor pipeline initialized")
     return preprocessor
+
+def build_text_preprocessor(max_features=2000):
+    """Возвращает ColumnTransformer для извлечения TF-IDF из текстов резюме и вакансии."""
+    text_transformer = TfidfVectorizer(
+        max_features=max_features,
+        ngram_range=(1, 2),
+        min_df=2,
+        stop_words='english'
+    )
+    
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("resume_tfidf", text_transformer, "resume_text"),
+            ("job_tfidf", TfidfVectorizer(max_features=max_features, ngram_range=(1,2), min_df=2), "job_text")
+        ],
+        remainder='drop'
+    )
+    return preprocessor
