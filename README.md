@@ -206,8 +206,9 @@ curl -X POST "http://localhost:8000/predict" \
 
 ### TensorBoard
 Для отслеживания процесса обучения нейросети:
-
+```
 tensorboard --logdir=runs --host 0.0.0.0 --port 6006
+```
 #### Открыть в браузере: http://localhost:6006
 
 **Отслеживаемые метрики:** `Loss/train`, `Loss/val`, `Metrics/val_accuracy`, `Metrics/val_f1`.
